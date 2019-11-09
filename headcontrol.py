@@ -3,20 +3,6 @@ import redboard
 import curses
 import time
 
-def pan(angle):
-    redboard.servo21(angle)
-
-def tilt(angle):
-    redboard.servo22(angle)
-
-pan_centre = -19
-tilt_centre = 28
-
-pan(pan_centre)
-tilt(tilt_centre)
-
-
-
 stdscr = curses.initscr()
 curses.noecho()
 stdscr.keypad(True)
@@ -32,10 +18,29 @@ print("R = Reverse Steering\r")
 
 time.sleep(3)
 
+def pan(angle):
+    redboard.servo21(angle)
+
+def tilt(angle):
+    redboard.servo22(angle)
+
 def main(stdscr):
     keypress = 0
     up = 0
     stop = 0
+    turbo = 0
+
+    pan_centre = -19
+    tilt_centre = 28
+
+    pan_offset = 0
+    tilt_offset = 0
+
+    pan_limit = 25
+    tilt_limit = 45
+
+    pan(pan_centre)
+    tilt(tilt_centre)
 
     while True:
         
@@ -46,76 +51,26 @@ def main(stdscr):
         
         if c == ord('w'):
             keypress = 1
-            print("Down")
-            print("\r")
-            stop = 0
-            motor1 = -100  # Set motor speed and direction
-            motor2 = -100  # Set motor speed and direction
+            tilt_offset = tilt_offset if tilt_offset == -tilt_limit else tilt_offset - 1
 
         elif c == ord('s'):
             keypress = 1
             stop = 0
-            print("Up")
-            print("\r")
-            motor1 = 100
-            motor2 = 100
+            tilt_offset = tilt_offset if tilt_offset == tilt_limit else tilt_offset + 1
 
         elif c == ord('a'):
             keypress = 1
             stop = 0
-            print("Left")
-            print("\r")
-            motor1 = -100
-            motor2 = 100
+            pan_offset = pan_offset if pan_offset == -pan_limit else pan_offset - 1
 			
         elif c == ord('d'):
             keypress = 1
             stop = 0
-            print("Right")
-            print("\r")
-            motor1 = 100
-            motor2 = -100
+            pan_offset = pan_offset if pan_offset == pan_limit else pan_offset + 1
                         
         elif c == 32:  # Spacebar
             keypress = 1
-            stop = 0
-            print("Stop")
-            print("\r")    
-            motor1 = 0
-            motor2 = 0                
-
-
-        elif c == ord('r') and rSteer == False:
-            keypress = 1
-            stop = 0
-            rSteer = True
-            print ("Reverse Steering")
-            print("\r")
-
-        elif c == ord('r') and rSteer == True:
-            keypress = 1
-            stop = 0
-            rSteer = False
-            print ("Normal Steering")
-            print("\r")
-
-
-
-        elif c == ord('t') and turbo == False:
-            keypress = 1
-            stop = 0
-            turbo = True
-            print ("Turbo on")
-            print("\r")
-
-        elif c == ord('t') and turbo == True:
-            keypress = 1
-            stop = 0
-            turbo = False
-            print ("Turbo off")
-            print("\r")
-
-
+            stop = 0                
 
         # Pressing a key also produces a number of key up events.
         # This block of code only stops the robot moving after at least 4 key up events have been detected.
@@ -128,30 +83,8 @@ def main(stdscr):
                                         # -increase this number.
             keypress = 0
             stop = 0
-            print("Stop----------------------------------------")
-            print("\r")
-            motor1 = 0
-            motor2 = 0
-
-
-
-
-        # Half the speed if Turbo is off
-        if turbo == True:
-            m1 = motor1
-            m2 = motor2
-        
-        elif turbo == False:
-            m1 = motor1 / 2
-            m2 = motor2 / 2
-
-        # Reverse the steering if 'R' has been pressed
-        if rSteer == False:
-            redboard.M1(m1)
-            redboard.M2(m2)
-
-        else:
-            redboard.M1(m2)
-            redboard.M2(m1)
+            
+        pan(pan_centre - pan_offset)
+        tilt(tilt_centre - tilt_offset)
           
 curses.wrapper(main)
